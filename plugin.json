@@ -1,0 +1,17 @@
+{
+  "name": "Kwatuor",
+  "manufacturer": "Kelta",
+  "version": "0.7.0",
+  "format": "vst2",
+  "kind": "instrument",
+  "uid": "KBK6",
+  "numInputs": 0,
+  "numOutputs": 2,
+  "category": "Synth",
+  "file32": "VST/kwatuor-arm32.so",
+  "file64": "VST/kwatuor-arm64.so",
+  "description": "Kwatuor: a four-track generative MIDI sequencer. Sends notes to other tracks through its own MIDI port; makes no sound.",
+  "author": "Kelta",
+  "url": "https://kwatuor.kelta.net",
+  "license": "PolyForm-Noncommercial-1.0.0"
+}
