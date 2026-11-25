@@ -5,8 +5,6 @@ on its own MIDI channel through the plugin's MIDI port, and other MPC tracks pla
 The tracks are fixed: **Drums, Bass, Chords, Melody**. Press a quadrant to re-roll that track, or the
 centre to re-roll all four.
 
-Inspired by the idea behind Cyma Forma's RND synth (one button, a new musical idea), without the synth.
-
 Needs MPC OS 3.10.1 or later with External plugins enabled (Preferences, Enhancements (Beta)).
 Tested on an MPC XL; it should work on Gen 1 and Gen 2 MPCs, where it has not been tried. **4/4 only.**
 
