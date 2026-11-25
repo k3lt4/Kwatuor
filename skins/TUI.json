@@ -581,7 +581,7 @@
          "showWhenDataModelInvalid": "Show",
          "whenVisible": "WhenFocussed",
          "boundsType": "Absolute",
-         "bounds": "0 0 96 96"
+         "bounds": "0 0 97 96"
         }
        },
        {
@@ -609,7 +609,209 @@
          "showWhenDataModelInvalid": "Show",
          "whenVisible": "Always",
          "boundsType": "Absolute",
-         "bounds": "0 0 96 96"
+         "bounds": "0 0 97 96"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "key": "knob t1 2",
+     "value": {
+      "version": 2,
+      "actions": [
+       {
+        "version": 1,
+        "onAction": "Mouse Down",
+        "handler": "Q-Link",
+        "handleName": "Data",
+        "additionalData": ""
+       },
+       {
+        "version": 1,
+        "onAction": "Double Click",
+        "handler": "Show Overlay",
+        "handleName": "Data",
+        "additionalData": "knob overlay"
+       },
+       {
+        "version": 1,
+        "onAction": "Enter Pressed",
+        "handler": "Show Overlay",
+        "handleName": "Data",
+        "additionalData": "knob overlay"
+       }
+      ],
+      "backgroundData": {
+       "version": 1,
+       "focussed": {
+        "version": 1,
+        "colour": "0",
+        "image": ""
+       },
+       "unfocussed": {
+        "version": 1,
+        "colour": "0",
+        "image": ""
+       }
+      },
+      "ignoreMousePresses": false,
+      "disableCoarseDataWheel": false,
+      "componentsData": [
+       {
+        "version": 2,
+        "componentData": {
+         "version": 1,
+         "name": "focus",
+         "type": "Focus",
+         "data": {
+          "version": 1,
+          "backgroundColour": "14000000",
+          "outlineColour": "ff111111",
+          "backgroundInset": 0.0,
+          "outlineThickness": 2.0
+         }
+        },
+        "handle remapping": {
+         "version": 1,
+         "map": []
+        },
+        "bounds": {
+         "version": 1,
+         "acceptsHWFocus": "No",
+         "showWhenDataModelInvalid": "Show",
+         "whenVisible": "WhenFocussed",
+         "boundsType": "Absolute",
+         "bounds": "0 0 97 96"
+        }
+       },
+       {
+        "version": 2,
+        "componentData": {
+         "version": 1,
+         "name": "knob",
+         "type": "Knob",
+         "data": {
+          "version": 2,
+          "knobType": "FilmStrip",
+          "filmStrip": "knob_t1_2.png",
+          "numFrames": 33,
+          "invert": false,
+          "handleName": "Data"
+         }
+        },
+        "handle remapping": {
+         "version": 1,
+         "map": []
+        },
+        "bounds": {
+         "version": 1,
+         "acceptsHWFocus": "No",
+         "showWhenDataModelInvalid": "Show",
+         "whenVisible": "Always",
+         "boundsType": "Absolute",
+         "bounds": "0 0 97 96"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "key": "knob t1 3",
+     "value": {
+      "version": 2,
+      "actions": [
+       {
+        "version": 1,
+        "onAction": "Mouse Down",
+        "handler": "Q-Link",
+        "handleName": "Data",
+        "additionalData": ""
+       },
+       {
+        "version": 1,
+        "onAction": "Double Click",
+        "handler": "Show Overlay",
+        "handleName": "Data",
+        "additionalData": "knob overlay"
+       },
+       {
+        "version": 1,
+        "onAction": "Enter Pressed",
+        "handler": "Show Overlay",
+        "handleName": "Data",
+        "additionalData": "knob overlay"
+       }
+      ],
+      "backgroundData": {
+       "version": 1,
+       "focussed": {
+        "version": 1,
+        "colour": "0",
+        "image": ""
+       },
+       "unfocussed": {
+        "version": 1,
+        "colour": "0",
+        "image": ""
+       }
+      },
+      "ignoreMousePresses": false,
+      "disableCoarseDataWheel": false,
+      "componentsData": [
+       {
+        "version": 2,
+        "componentData": {
+         "version": 1,
+         "name": "focus",
+         "type": "Focus",
+         "data": {
+          "version": 1,
+          "backgroundColour": "14000000",
+          "outlineColour": "ff111111",
+          "backgroundInset": 0.0,
+          "outlineThickness": 2.0
+         }
+        },
+        "handle remapping": {
+         "version": 1,
+         "map": []
+        },
+        "bounds": {
+         "version": 1,
+         "acceptsHWFocus": "No",
+         "showWhenDataModelInvalid": "Show",
+         "whenVisible": "WhenFocussed",
+         "boundsType": "Absolute",
+         "bounds": "0 0 97 96"
+        }
+       },
+       {
+        "version": 2,
+        "componentData": {
+         "version": 1,
+         "name": "knob",
+         "type": "Knob",
+         "data": {
+          "version": 2,
+          "knobType": "FilmStrip",
+          "filmStrip": "knob_t1_3.png",
+          "numFrames": 33,
+          "invert": false,
+          "handleName": "Data"
+         }
+        },
+        "handle remapping": {
+         "version": 1,
+         "map": []
+        },
+        "bounds": {
+         "version": 1,
+         "acceptsHWFocus": "No",
+         "showWhenDataModelInvalid": "Show",
+         "whenVisible": "Always",
+         "boundsType": "Absolute",
+         "bounds": "0 0 97 96"
         }
        }
       ]
@@ -727,7 +929,7 @@
      }
     },
     {
-     "key": "knob t2 2",
+     "key": "knob t2 4",
      "value": {
       "version": 2,
       "actions": [
@@ -805,7 +1007,7 @@
          "data": {
           "version": 2,
           "knobType": "FilmStrip",
-          "filmStrip": "knob_t2_2.png",
+          "filmStrip": "knob_t2_4.png",
           "numFrames": 33,
           "invert": false,
           "handleName": "Data"
@@ -828,7 +1030,7 @@
      }
     },
     {
-     "key": "knob t2 3",
+     "key": "knob t2 5",
      "value": {
       "version": 2,
       "actions": [
@@ -906,7 +1108,7 @@
          "data": {
           "version": 2,
           "knobType": "FilmStrip",
-          "filmStrip": "knob_t2_3.png",
+          "filmStrip": "knob_t2_5.png",
           "numFrames": 33,
           "invert": false,
           "handleName": "Data"
@@ -1040,7 +1242,7 @@
      }
     },
     {
-     "key": "knob t3 4",
+     "key": "knob t3 6",
      "value": {
       "version": 2,
       "actions": [
@@ -1118,7 +1320,7 @@
          "data": {
           "version": 2,
           "knobType": "FilmStrip",
-          "filmStrip": "knob_t3_4.png",
+          "filmStrip": "knob_t3_6.png",
           "numFrames": 33,
           "invert": false,
           "handleName": "Data"
@@ -1141,7 +1343,7 @@
      }
     },
     {
-     "key": "knob t3 5",
+     "key": "knob t3 7",
      "value": {
       "version": 2,
       "actions": [
@@ -1219,7 +1421,7 @@
          "data": {
           "version": 2,
           "knobType": "FilmStrip",
-          "filmStrip": "knob_t3_5.png",
+          "filmStrip": "knob_t3_7.png",
           "numFrames": 33,
           "invert": false,
           "handleName": "Data"
@@ -1242,7 +1444,7 @@
      }
     },
     {
-     "key": "knob t4 6",
+     "key": "knob t4 8",
      "value": {
       "version": 2,
       "actions": [
@@ -1320,7 +1522,7 @@
          "data": {
           "version": 2,
           "knobType": "FilmStrip",
-          "filmStrip": "knob_t4_6.png",
+          "filmStrip": "knob_t4_8.png",
           "numFrames": 33,
           "invert": false,
           "handleName": "Data"
@@ -1343,7 +1545,7 @@
      }
     },
     {
-     "key": "knob t4 7",
+     "key": "knob t4 9",
      "value": {
       "version": 2,
       "actions": [
@@ -1421,7 +1623,7 @@
          "data": {
           "version": 2,
           "knobType": "FilmStrip",
-          "filmStrip": "knob_t4_7.png",
+          "filmStrip": "knob_t4_9.png",
           "numFrames": 33,
           "invert": false,
           "handleName": "Data"
@@ -1623,6 +1825,15 @@
     "value": [
      "Loop",
      "Drone"
+    ]
+   },
+   {
+    "key": "Parameter 214",
+    "value": [
+     "1/16T",
+     "1/32",
+     "1/32T",
+     "1/64"
     ]
    }
   ],
@@ -4375,7 +4586,7 @@
         "showWhenDataModelInvalid": "Hide",
         "whenVisible": "Always",
         "boundsType": "Absolute",
-        "bounds": "107 199 96 96"
+        "bounds": "73 199 97 96"
        }
       },
       {
@@ -4417,7 +4628,7 @@
         "showWhenDataModelInvalid": "Show",
         "whenVisible": "Always",
         "boundsType": "Absolute",
-        "bounds": "113 307 84 34"
+        "bounds": "79 307 85 34"
        }
       },
       {
@@ -4425,7 +4636,7 @@
        "componentData": {
         "version": 1,
         "name": "Drums Fills",
-        "type": "knob t1 1",
+        "type": "knob t1 2",
         "data": {
          "version": 1,
          "handleName": "Data"
@@ -4446,7 +4657,7 @@
         "showWhenDataModelInvalid": "Hide",
         "whenVisible": "Always",
         "boundsType": "Absolute",
-        "bounds": "307 199 96 96"
+        "bounds": "206 199 97 96"
        }
       },
       {
@@ -4488,7 +4699,78 @@
         "showWhenDataModelInvalid": "Show",
         "whenVisible": "Always",
         "boundsType": "Absolute",
-        "bounds": "313 307 84 34"
+        "bounds": "212 307 85 34"
+       }
+      },
+      {
+       "version": 2,
+       "componentData": {
+        "version": 1,
+        "name": "Drums Roll",
+        "type": "knob t1 3",
+        "data": {
+         "version": 1,
+         "handleName": "Data"
+        }
+       },
+       "handle remapping": {
+        "version": 1,
+        "map": [
+         {
+          "key": "Data",
+          "value": "Parameter 214"
+         }
+        ]
+       },
+       "bounds": {
+        "version": 1,
+        "acceptsHWFocus": "Yes",
+        "showWhenDataModelInvalid": "Hide",
+        "whenVisible": "Always",
+        "boundsType": "Absolute",
+        "bounds": "340 199 97 96"
+       }
+      },
+      {
+       "version": 2,
+       "componentData": {
+        "version": 1,
+        "name": "Drums Roll value",
+        "type": "Label",
+        "data": {
+         "version": 1,
+         "textStyle": {
+          "version": 1,
+          "font": {
+           "version": 1,
+           "name": "Titillium Web",
+           "style": "SemiBold",
+           "height": 30.0
+          },
+          "colour": "fffff6ea",
+          "justification": "horizontallyCentred verticallyCentred",
+          "case": "Original"
+         },
+         "type": "Value",
+         "handleName": "Data"
+        }
+       },
+       "handle remapping": {
+        "version": 1,
+        "map": [
+         {
+          "key": "Data",
+          "value": "Parameter 214"
+         }
+        ]
+       },
+       "bounds": {
+        "version": 1,
+        "acceptsHWFocus": "No",
+        "showWhenDataModelInvalid": "Show",
+        "whenVisible": "Always",
+        "boundsType": "Absolute",
+        "bounds": "346 307 85 34"
        }
       },
       {
@@ -5029,12 +5311,46 @@
        "version": 2,
        "componentData": {
         "version": 1,
+        "name": "roll",
+        "type": "Button",
+        "data": {
+         "version": 2,
+         "onImage": "rollkey_on.png",
+         "offImage": "rollkey_off.png",
+         "buttonId": 1,
+         "numButtonsInGroup": 1,
+         "handleName": "Data",
+         "gestureBehaviour": "Instant"
+        }
+       },
+       "handle remapping": {
+        "version": 1,
+        "map": [
+         {
+          "key": "Data",
+          "value": "Parameter 216"
+         }
+        ]
+       },
+       "bounds": {
+        "version": 1,
+        "acceptsHWFocus": "No",
+        "showWhenDataModelInvalid": "Show",
+        "whenVisible": "Always",
+        "boundsType": "Absolute",
+        "bounds": "1030 503 160 56"
+       }
+      },
+      {
+       "version": 2,
+       "componentData": {
+        "version": 1,
         "name": "re-roll",
         "type": "Button",
         "data": {
          "version": 2,
-         "onImage": "hit_250x464.png",
-         "offImage": "hit_250x464.png",
+         "onImage": "hit_250x374.png",
+         "offImage": "hit_250x374.png",
          "buttonId": 1,
          "numButtonsInGroup": 1,
          "handleName": "Data",
@@ -5056,7 +5372,7 @@
         "showWhenDataModelInvalid": "Show",
         "whenVisible": "Always",
         "boundsType": "Absolute",
-        "bounds": "985 117 250 464"
+        "bounds": "985 117 250 374"
        }
       },
       {
@@ -5452,7 +5768,7 @@
        "componentData": {
         "version": 1,
         "name": "Bass Density",
-        "type": "knob t2 2",
+        "type": "knob t2 4",
         "data": {
          "version": 1,
          "handleName": "Data"
@@ -5523,7 +5839,7 @@
        "componentData": {
         "version": 1,
         "name": "Bass Motion",
-        "type": "knob t2 3",
+        "type": "knob t2 5",
         "data": {
          "version": 1,
          "handleName": "Data"
@@ -5594,7 +5910,7 @@
        "componentData": {
         "version": 1,
         "name": "Bass Gate",
-        "type": "knob t2 2",
+        "type": "knob t2 4",
         "data": {
          "version": 1,
          "handleName": "Data"
@@ -5665,7 +5981,7 @@
        "componentData": {
         "version": 1,
         "name": "Bass Long Notes",
-        "type": "knob t2 3",
+        "type": "knob t2 5",
         "data": {
          "version": 1,
          "handleName": "Data"
@@ -6415,7 +6731,7 @@
        "componentData": {
         "version": 1,
         "name": "Chords Density",
-        "type": "knob t3 4",
+        "type": "knob t3 6",
         "data": {
          "version": 1,
          "handleName": "Data"
@@ -6486,7 +6802,7 @@
        "componentData": {
         "version": 1,
         "name": "Chords Motion",
-        "type": "knob t3 5",
+        "type": "knob t3 7",
         "data": {
          "version": 1,
          "handleName": "Data"
@@ -6557,7 +6873,7 @@
        "componentData": {
         "version": 1,
         "name": "Chords Gate",
-        "type": "knob t3 4",
+        "type": "knob t3 6",
         "data": {
          "version": 1,
          "handleName": "Data"
@@ -6628,7 +6944,7 @@
        "componentData": {
         "version": 1,
         "name": "Chords Long Notes",
-        "type": "knob t3 5",
+        "type": "knob t3 7",
         "data": {
          "version": 1,
          "handleName": "Data"
@@ -7378,7 +7694,7 @@
        "componentData": {
         "version": 1,
         "name": "Melody Density",
-        "type": "knob t4 6",
+        "type": "knob t4 8",
         "data": {
          "version": 1,
          "handleName": "Data"
@@ -7449,7 +7765,7 @@
        "componentData": {
         "version": 1,
         "name": "Melody Motion",
-        "type": "knob t4 7",
+        "type": "knob t4 9",
         "data": {
          "version": 1,
          "handleName": "Data"
@@ -7520,7 +7836,7 @@
        "componentData": {
         "version": 1,
         "name": "Melody Gate",
-        "type": "knob t4 6",
+        "type": "knob t4 8",
         "data": {
          "version": 1,
          "handleName": "Data"
@@ -7591,7 +7907,7 @@
        "componentData": {
         "version": 1,
         "name": "Melody Long Notes",
-        "type": "knob t4 7",
+        "type": "knob t4 9",
         "data": {
          "version": 1,
          "handleName": "Data"

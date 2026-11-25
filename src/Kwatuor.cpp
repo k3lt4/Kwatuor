@@ -44,6 +44,12 @@
 // and channel. The MPC XL feeds our own port back into this track, and a plugin is not told which port a note came
 // from, so a note that matches one we sent a moment ago (same channel, same note) is taken for our own echo and
 // skipped. Other incoming MIDI is ignored.
+// Roll: a hat roll played by hand, in place of the pattern's own closed hats. The ROLL key on the DRUMS page arms
+// one: it plays over the last beat before the next bar line when On bar is lit, else over the half beat before the
+// next beat, and the key stays lit until it lands. The roll speeds up to the Roll rate and gets louder, and the
+// beat it lands on is accented. The Roll On switch (a Q-Link) arms the same roll when it is turned up, once: it has
+// to go back and up again for another. A second touch of the key before the roll begins takes it back; a roll that
+// has begun always finishes. It is played, not stored: no pattern or Fav holds it.
 // The ALSA calls in process() are non-blocking; measured on an MPC XL at about 20 microseconds.
 
 #include "mpc_plugin.h"
@@ -68,6 +74,10 @@ using namespace kwatuor;
 
 constexpr int kMinDrumPads = 4;   // kick, snare and the two hats always play; Pads adds percussion up to kDrumPads
 constexpr int kFavSlots = 10;   // kept states
+constexpr int kHatPad = 2;      // the closed hat among the drum sounds
+constexpr double kRollPerBeat[4] = {6.0, 8.0, 12.0, 16.0};   // roll hits per quarter note: 1/16T, 1/32, 1/32T, 1/64
+constexpr double kRollLandVel = 118.0;                       // the hat on the beat a roll lands on
+enum { kRollIdle = 0, kRollOnce };                            // nothing; armed or playing into its landing
 
 // The skin generator finds parameters by name. Projects depend on the order: new parameters go at the end.
 enum ParamIndex
@@ -128,6 +138,9 @@ enum ParamIndex
     kFavEdit,                           // switch: the FAV page shows the crosses, and a tile no longer recalls
     kFavCross,                          // x10 display: 1 while this slot shows its cross
     kSend = kFavCross + kFavSlots,      // switch, the MIDI readout: off = nothing is sent and the clocks stay dark. Saved, not in a Fav
+    kRollRate,                          // choice: how fast the hat roll is (see kRollPerBeat). Saved, not in a Fav
+    kRoll,                              // switch (a Q-Link): turned up, it arms one roll (see process())
+    kRollTap,                           // push button, the ROLL key: arms one roll; lit until it lands
     kNumParams
 };
 
@@ -340,6 +353,9 @@ public:
         addParam(mpc::boolParam("fav_edit", "Fav Edit", false));
         for (int s = 0; s < kFavSlots; ++s) addParam(mpc::intParam(("fav" + std::to_string(s + 1) + "_cross").c_str(), (slotName(s) + " Cross").c_str(), 0, 1, 0, ""));
         addParam(mpc::boolParam("midi_send", "MIDI Send", true));
+        addParam(mpc::choiceParam("roll_rate", "Drums Roll", {"1/16T", "1/32", "1/32T", "1/64"}, 1));
+        addParam(mpc::boolParam("roll", "Drums Roll On", false));
+        addParam(mpc::boolParam("roll_tap", "Drums Roll Key", false));
         for (int t = 0; t < kTracks; ++t)
         {
             steppers_[3 * t]     = {kChannel + t, kChanUp + t,   kChanDown + t,   0, 15};
@@ -370,6 +386,7 @@ public:
             v[kHarmony] = 35.0f;
             v[kStatus] = 1.0f;
             v[kSend] = 1.0f;
+            v[kRollRate] = 1.0f;
             return v;
         };
         addProgram("Init", program());
@@ -408,13 +425,14 @@ public:
 
     // Every write to a parameter passes here, whoever makes it (the host, a loaded project, this plugin). The
     // framework's range check lets a value that is not a number through, and such a value would then pass every
-    // later range check too: put the parameter back to its default instead. Nothing else happens here.
+    // later range check too: put the parameter back to its default instead.
     void parameterChanged(int index, float plainValue) override
     {
         // The stored value is tested, not plainValue: for a switch or a list the plain value is already rounded to
-        // some whole number and looks fine.
-        (void)plainValue;
+        // some whole number and looks fine. Nothing else happens here, but for the roll key.
         if (!std::isfinite(getNormalised(index))) set(index, param(index).def);
+        // The roll switch may go up and back between two audio blocks: note the press itself.
+        if (index == kRoll && plainValue >= 0.5f) rollPress_.store(true, std::memory_order_relaxed);
     }
 
     // Runs on resume and after a state load, possibly off the audio thread: only raise a flag.
@@ -439,6 +457,8 @@ public:
             pendingRecall_ = -1;
             requests_.store(0, std::memory_order_relaxed);
             stepResync_.store(true, std::memory_order_relaxed);
+            rollState_ = kRollIdle;
+            rollPress_.store(false, std::memory_order_relaxed);
         }
         // The buttons are toggles on screen, so every flip by the user is a press. A flip to off that we
         // made ourselves (switching the light off once the idea landed) is not.
@@ -494,6 +514,10 @@ public:
         {
             if (wasRunning_) releaseAll();
             wasRunning_ = false;
+            rollPress_.store(false, std::memory_order_relaxed);   // a press while stopped rolls nothing later
+            rollState_ = kRollIdle;
+            switchSpent_ = getBool(kRoll);                        // up while stopped: no roll at the start
+            if (getBool(kRollTap)) { tapSpent_ = true; rollTapClear_.store(true, std::memory_order_relaxed); }
             alsa_.flush();
             publishClock(t);
             return;
@@ -553,6 +577,37 @@ public:
         bool played = false;
         prevStart_ = start; prevEnd_ = end; havePrevEnd_ = true;
 
+        // The key arms a roll while it is lit; the switch arms one when it goes up (a turn up and back between two
+        // blocks counts), and has had its roll until it has been down again.
+        const bool tapLit = getBool(kRollTap), switchUp = getBool(kRoll);
+        if (!tapLit) tapSpent_ = false;
+        const bool tapWant = tapLit && !tapSpent_;
+        bool rollArm = rollPress_.exchange(false, std::memory_order_relaxed) && !switchSpent_;
+        if (switchUp) { rollArm = rollArm || !switchSpent_; switchSpent_ = true; }
+        else switchSpent_ = false;
+        bool rollFresh = jumped, landNow = false;
+        if (started) rollState_ = kRollIdle;
+        else if (jumped && rollState_ == kRollOnce)
+        {
+            // The position jumped under an armed roll (the loop wrapped): one that had begun lands here, on the
+            // loop start; one that had not is armed again from the new position.
+            if (rollBegun_) landNow = true;
+            else { rollState_ = kRollIdle; rollArm = true; }
+        }
+        if (rollState_ == kRollIdle && (tapWant || rollArm) && !countIn_ && !landNow)
+        {
+            const bool bar = getBool(kOnBar);
+            const double span = bar ? 4.0 : 1.0;                        // lands on the bar line, or on the beat
+            rollLand_ = (std::floor(start / span + 1e-9) + 1.0) * span;
+            if (rollLand_ - start < 0.25) rollLand_ += span;            // too late for this one: the next
+            rollStart_ = rollLand_ - (bar ? 1.0 : 0.5);                 // armed later than that, it starts at once and is shorter
+            rollState_ = kRollOnce; rollByKey_ = tapWant && !rollArm; rollBegun_ = false; rollFresh = true;
+        }
+        // The key touched again before its roll began takes it back.
+        if (rollState_ == kRollOnce && rollByKey_ && !tapWant && !rollBegun_ && start < rollStart_) rollState_ = kRollIdle;
+        // Whether the roll has the closed hat at this position (the pattern's own is then left out).
+        const auto rollAt = [&](double ppq) { return rollState_ != kRollIdle && ppq >= rollStart_ - 1e-9 && ppq <= rollLand_ + 1e-9; };
+
         for (int64_t k = (int64_t)std::floor(start * 4.0) - 1; ; ++k)
         {
             const double when = (double)k * 0.25 + ((k & 1) ? swingPpq : 0.0);
@@ -568,10 +623,57 @@ public:
             lastStep_ = k;
             if (countIn_) continue;
             const int offset = mpc::clamp((int)((when - start) / ppqPerSample), 0, n - 1);
-            playStep(k, offset, n, stepSamples);
+            playStep(k, offset, n, stepSamples, rollAt(when));
             played = true;
         }
         playedPrev_ = played;
+
+        // Roll hits: the lines of the rate's grid in this block, counted from the song start so that they fall in time.
+        if (rollState_ != kRollIdle && !countIn_)
+        {
+            const bool out = getBool(kSend) && getBool(kTrackSend + kDrums);   // silent otherwise, but it still runs and lands
+            const int rate = mpc::clamp(getInt(kRollRate), 0, 3);
+            const double perBeat = kRollPerBeat[rate];
+            const int64_t per = (int64_t)perBeat;
+            if (rollFresh || rate != rollRate_) { rollLast_ = (int64_t)std::ceil(start * perBeat - 1e-6) - 1; rollRate_ = rate; }
+            const int channel = mpc::clamp(getInt(kChannel + kDrums), 0, 15), note = mpc::clamp(getInt(kKitNote + kHatPad), 0, 127);
+            const float level = mpc::clamp(get(kLevel), 25.0f, 125.0f) * 0.01f;
+            const double hitSamples = 4.0 * stepSamples / perBeat;
+            const auto hit = [&](double velocity, int offset, double when)
+            {
+                rollBegun_ = true;
+                if (!out) return;
+                int left = (int)(0.5 * hitSamples) - (n - offset);
+                if (left < 1) left = 1;
+                strike(kDrums, channel, note, (int)std::lround((velocity + (double)(nextRandom() % 7u) - 3.0) * level), left);
+                hitStep_[kDrums] = (int64_t)std::floor(when * 4.0 + 1e-6);
+            };
+            // It landed: the key goes out.
+            const auto landed = [&]
+            {
+                if (getBool(kRollTap)) { tapSpent_ = true; rollTapClear_.store(true, std::memory_order_relaxed); }
+                rollState_ = kRollIdle;
+            };
+            if (landNow) { hit(kRollLandVel, 0, start); landed(); }
+            for (int64_t j = rollLast_ + 1; rollState_ != kRollIdle; ++j)
+            {
+                const double when = (double)j / perBeat;
+                if (when >= end) break;
+                if (when >= loopEnd - 1e-9 && start < loopEnd - 1e-9) break;   // on the loop point: after the wrap
+                rollLast_ = j;
+                if (j < 0 || start - when > oneBlock) continue;
+                if (when < rollStart_ - 1e-9) continue;   // armed, not yet begun
+                const int offset = mpc::clamp((int)((when - start) / ppqPerSample), 0, n - 1);
+                if (when >= rollLand_ - 1e-9) { hit(kRollLandVel, offset, when); landed(); continue; }
+                // Into the landing it speeds up, a rate at a time, to the Roll rate (1/64 comes from 1/16, the
+                // others from half their rate), counted back from the landing so that the last hits lead in evenly.
+                const double u = mpc::clamp((when - rollStart_) / (rollLand_ - rollStart_), 0.0, 1.0);
+                const int stages = per % 16 == 0 ? 3 : 2;
+                const int64_t every = (int64_t)1 << (stages - 1 - std::min(stages - 1, (int)(u * stages)));
+                if (((int64_t)std::llround(rollLand_ * perBeat) - j) % every != 0) continue;
+                hit(46.0 + 64.0 * u, offset, when);
+            }
+        }
 
         alsa_.flush();
         publishClock(t);
@@ -704,7 +806,7 @@ private:
         info.name         = "Kwatuor";
         info.vendor       = "Kelta";   // must match plugin.json "manufacturer"
         info.uniqueId     = MPC_FOURCC(kUid[0], kUid[1], kUid[2], kUid[3]);   // must match plugin.json "uid"
-        info.version      = 700;    // 0.7.0.0
+        info.version      = 800;    // 0.8.0.0
         info.isInstrument = true;
         info.numInputs    = 0;
         info.numOutputs   = 2;
@@ -1023,7 +1125,8 @@ private:
     // ---- playback ----------------------------------------------------------------------------
     static int64_t wrap(int64_t k, int64_t length) { const int64_t m = k % length; return m < 0 ? m + length : m; }
 
-    void playStep(int64_t k, int offset, int blockFrames, double stepSamples)
+    // rolling: the roll plays the closed hat at this moment, so the pattern's own is left out.
+    void playStep(int64_t k, int offset, int blockFrames, double stepSamples, bool rolling)
     {
         if (wrap(k, kStepsPerBar) == 0) { land(); staleMask_ = refreshPatterns(); }   // the bar line: what was waiting lands
 
@@ -1045,15 +1148,22 @@ private:
             if (left < 1) left = 1;
             for (int v = 0; v < st.count; ++v)
             {
-                Held* slot = nullptr;
-                for (Held& h : held_[tr]) if (h.note == notes[v]) { noteOff(h); slot = &h; break; }   // retrigger
-                if (!slot) for (Held& h : held_[tr]) if (h.note < 0) { slot = &h; break; }
-                if (!slot) { slot = &held_[tr][0]; for (Held& h : held_[tr]) if (h.left < slot->left) slot = &h; noteOff(*slot); }
-                alsa_.note(true, channel, notes[v], mpc::clamp((int)std::lround((float)st.vel[v] * level), 1, 127));   // every note has its own loudness
-                remember(channel, notes[v]);
-                slot->note = notes[v]; slot->channel = channel; slot->left = left;
+                if (tr == kDrums && rolling && st.note[v] - kDrumBaseNote == kHatPad) continue;
+                strike(tr, channel, notes[v], (int)std::lround((float)st.vel[v] * level), left);   // every note has its own loudness
             }
         }
+    }
+
+    // Sends a note-on and books its note-off `left` samples after this block.
+    void strike(int tr, int channel, int note, int velocity, int left)
+    {
+        Held* slot = nullptr;
+        for (Held& h : held_[tr]) if (h.note == note) { noteOff(h); slot = &h; break; }   // retrigger
+        if (!slot) for (Held& h : held_[tr]) if (h.note < 0) { slot = &h; break; }
+        if (!slot) { slot = &held_[tr][0]; for (Held& h : held_[tr]) if (h.left < slot->left) slot = &h; noteOff(*slot); }
+        alsa_.note(true, channel, note, mpc::clamp(velocity, 1, 127));
+        remember(channel, note);
+        slot->note = note; slot->channel = channel; slot->left = left;
     }
 
     void remember(int channel, int note) { sent_[sentNext_] = {note, channel, sampleClock_}; sentNext_ = (sentNext_ + 1) % kSentSize; }
@@ -1109,6 +1219,9 @@ private:
             show(kFavLook, (float)starShown_.load(std::memory_order_relaxed), 0.5f);
             // Edit: a loaded project never opens with the crosses showing.
             if (skip && getBool(kFavEdit)) { set(kFavEdit, 0.0f); notifyHostParameterChanged(kFavEdit); }
+            for (int rollParam : {(int)kRoll, (int)kRollTap})                                       // nor with a roll armed
+                if (skip && getBool(rollParam)) { set(rollParam, 0.0f); notifyHostParameterChanged(rollParam); }
+            if (rollTapClear_.exchange(false, std::memory_order_relaxed) && getBool(kRollTap)) { set(kRollTap, 0.0f); notifyHostParameterChanged(kRollTap); }   // it landed
             const bool edit = getBool(kFavEdit);
             for (int i = 0; i < kFavSlots; ++i)
             {
@@ -1288,6 +1401,16 @@ private:
     double   prevStart_ = 0.0;
     double   learnedEnd_ = kNever;       // where the host's loop was last seen to wrap
     bool     playedPrev_ = false;        // a step went out in the previous block
+    std::atomic<bool> rollPress_{false}; // any thread -> audio: the roll switch went up
+    std::atomic<bool> rollTapClear_{false};   // audio -> worker: put the ROLL key out
+    int      rollState_ = kRollIdle;     // audio thread
+    bool     rollByKey_ = false;         // the armed roll came from the key: a second touch takes it back
+    bool     switchSpent_ = false;       // the switch is up and has armed its roll
+    bool     rollBegun_ = false;         // a hit of this roll has come up
+    bool     tapSpent_ = false;          // the lit key has had its roll; it is about to go out
+    double   rollStart_ = 0.0, rollLand_ = 0.0;   // song positions (in quarter notes): where it begins and where it lands
+    int64_t  rollLast_ = 0;              // the last line of the roll grid that was played
+    int      rollRate_ = -1;             // the rate that grid belongs to
 
     std::atomic<uint32_t> clearButtons_{0};
     std::atomic<uint32_t> selfCleared_{0};

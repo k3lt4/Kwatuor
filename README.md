@@ -17,7 +17,7 @@ Tested on an MPC XL; it should work on Gen 1 and Gen 2 MPCs, where it has not be
 ## Setup on the MPC
 
 1. Put Kwatuor on a plugin track. The tracks send on channels 2 to 5 (Drums, Bass, Chords, Melody), which leaves channel 1 to a keyboard; change **Channel** on a track's page if needed.
-2. For each receiving track: MIDI input **Kwatuor**, the matching channel, monitor on.
+2. For each receiving track: MIDI input **Kwatuor**, the matching channel, Monitor on **Merge**.
    Channel 2 a drum program, 3 a bass, 4 a pad or keys, 5 a lead sound.
 3. On the DRUMS page, set **Kit** to match the drum program: **MPC** for a standard MPC drum program, **GM** for a
    General MIDI kit, **CHR** for notes in a row from 36 (the default). Tap a cell to hear where a sound lands.
@@ -67,15 +67,9 @@ sound are ended, and the bar clock and the step strips stay dark. The re-rolls s
 |---|---|---|---|
 | Density | all | 0..100 % | How many of the style's possible steps play |
 | Motion (Fills on Drums) | all | 0..100 % | Variation between bars, leaps, fills, extra percussion. That track only: chord movement is Harmony on MAIN |
-| Gate | Bass, Chords, Melody | 5..100 % | Note length as a share of the gap to the next note; 100 % is legato. It cannot make a note outlast the next one: in a busy style, lower Density for longer notes |
-| Long Notes | Bass, Chords, Melody | 0..100 % | Chance a note is a long one: it lasts a beat or two and swallows the notes that would fall inside it |
-| Channel | all | 1..16 | MIDI channel |
-| Pads | Drums | 4..8 | How many drum sounds play: kick, snare and the two hats always, plus up to four percussion (at most four hit on one step) |
-| Kit | Drums | a note per sound | The note each of the eight drum sounds is sent on. Tap a cell to select and hear it, + and - move it, CHR / MPC / GM fill all eight, and the key stays lit until a note is moved. Cells beyond the Pads count are greyed |
-| Octave | Bass, Chords, Melody | -3..+3 | 0 is the octave of middle C |
-| Notes | Bass, Chords, Melody | 1..4 | Chord size; harmony notes on the melody; on the bass a fifth, the octave and the fifth above it |
-| Mode | Bass, Chords, Melody | Loop, Drone | Drone: one long note per bar at most, no rhythm |
-| Step strip | all | display | Beside the track name: the bar clock laid flat. The step that plays flashes in the track colour when the track starts a note on it |
+| Roll | Drums | 1/16T, 1/32, 1/32T, 1/64 | The speed a hat roll reaches |
+| ROLL | Drums | push | At the foot of the tile: arms one hat roll and stays lit until it lands. With ON BAR lit the roll plays over the last beat of the bar and lands on the bar line; with it out, over the half beat before the next beat. It speeds up to the Roll rate, gets louder and accents the beat it lands on, in place of the pattern's closed hats. Touch the key again before the roll begins to take it back. It is played, not stored: no pattern or Fav holds it, but it is recorded with the rest of Kwatuor's MIDI |
+| Roll On | Drums | Q-Link | The fourth Q-Link on DRUMS, a switch: turned up, it arms the same roll, once. Turn it back and up again for another |
 | Tile | all | push | The pattern tile on the right re-rolls the track (the shaking K badge). At its top: the ON / OFF plate; a track that is off has its tile washed out |
 
 For bar-long pads: Chords with Gate 100 % and low Density, or Mode Drone.
@@ -87,8 +81,8 @@ two-word name. Tap a tile to recall it on the next bar line (at once with On bar
 EDIT, on the panel's top edge, shows a cross on each Fav: the cross removes it, for good, and while EDIT is lit a tile
 does not recall. Favs are saved with the project. The version is printed small at the bottom right of this page.
 
-**Q-Links on MAIN** (MPC XL, four banks left to right): Style, Length, Key, Scale / Variations, Harmony,
-Swing, Velocity / the four re-rolls / the four On switches. The MPC keeps Q-Link assignments it has seen before: after a
+**Q-Links on MAIN** (MPC XL, four banks left to right): Style, Length, Key, Scale / Generate (the centre
+button), Harmony, Swing, Velocity / the four re-rolls / the four On switches. The MPC keeps Q-Link assignments it has seen before: after a
 change of this map an old project may show a mix until Kwatuor is added afresh.
 
 ## How it works
@@ -134,7 +128,7 @@ Tests, all on the Mac against the native build:
 |---|---|
 | `tests/dump.cpp` | 623,000 generated patterns: in scale, voice limit, non-empty, and how each knob behaves (Dens only adds notes, Gate only lengthens, Notes nest, a re-roll of one track leaves the others alone) |
 | `tests/metrics.cpp` | Musical measures per style with thresholds: chord tones on the beat, bass on the root at a chord change, kick and bass together, distinct bars, voice leading, cost |
-| `tests/histhost.cpp` | A small VST host: Fav (keep, name, recall, Edit and remove, the star's states, save and load, the Kit in a Fav), Undo and Redo, the Variations keys, Gate and Long Notes following Style, Kit, Pads, Key in and its echo filter, On bar, the step strips, the 4/4 warning, MIDI Send |
+| `tests/histhost.cpp` | A small VST host: Fav (keep, name, recall, Edit and remove, the star's states, save and load, the Kit in a Fav), Undo and Redo, the Variations keys, Gate and Long Notes following Style, Kit, Pads, Key in and its echo filter, On bar, the step strips, the 4/4 warning, MIDI Send, the Roll rate |
 | SDK `host_sim ... test --playing` | Every note-on gets its note-off |
 
 ## Limits
@@ -144,7 +138,7 @@ Tests, all on the Mac against the native build:
 - Count-in: a note at the very start can occasionally be missed.
 - CPU and memory: on an MPC XL with a four-track project, no cost that could be told from the same project without
   the plugin, and no memory growth.
-- Not implemented: per-pad drum velocity, hat rolls faster than 1/16, more than one level of undo, naming a Fav by
+- Not implemented: per-pad drum velocity, hat rolls written into the pattern (the ROLL key plays them by hand), more than one level of undo, naming a Fav by
   hand (the MPC's keyboard does not open for a plugin).
 - The MIDI port is outside the SDK's host contract: a firmware update could break it.
 

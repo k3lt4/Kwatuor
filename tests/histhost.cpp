@@ -46,6 +46,7 @@ int main(int, char** argv)
     const auto shows = [](const char* n, int max) { return (int)std::lround(norm(n) * (float)max); };   // a display parameter's value
     const auto setp = [](const char* n, float v) { e->setParameter(e, ix.at(n), v); run(120); };
     check(tile("F1 Drums") == 0, "Fav starts empty");
+    check(text("Drums Roll") == "1/32" && norm("Drums Roll Key") < 0.5f && norm("Drums Roll On") < 0.5f, "Roll starts at 1/32, its key and its switch off");
     check(shows("Undo Look", 2) == 0 && shows("Fav Look", 2) == 0, "nothing to undo yet, and the star is plain");
     const float dens0 = norm("Drums Density"), gate0 = norm("Bass Gate");
     press("Drums Rand"); press("Bass Rand");
